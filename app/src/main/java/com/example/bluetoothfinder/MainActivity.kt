@@ -1,5 +1,12 @@
 package com.example.bluetoothfinder
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.ACTION_FOUND
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,6 +21,14 @@ class MainActivity : AppCompatActivity() {
     var listView: ListView? = null
     var statusTextView: TextView? = null
     var searchButton: Button? = null
+    private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            var action: String? = intent?.action
+            Log.i("Action", action!!)
+        }
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +37,15 @@ class MainActivity : AppCompatActivity() {
         listView = findViewById(R.id.listView)
         statusTextView = findViewById(R.id.statusTextView)
         searchButton = findViewById(R.id.searchButton)
+
+        var intentFilter: IntentFilter = IntentFilter()
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+        intentFilter.addAction(ACTION_FOUND)
+        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        registerReceiver(broadcastReceiver, intentFilter)
+
+        bluetoothAdapter.startDiscovery()
     }
 
     fun onSearchClicked(view: View) {
