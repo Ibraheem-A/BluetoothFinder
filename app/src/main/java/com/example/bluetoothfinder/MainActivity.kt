@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     var listView: ListView? = null
     var statusTextView: TextView? = null
     var searchButton: Button? = null
+    var bluetoothList: ArrayList<String>? = null
     var arrayAdapter: ArrayAdapter<String>? = null
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
@@ -38,13 +39,17 @@ class MainActivity : AppCompatActivity() {
                 searchButton?.isEnabled = true
                 searchButton?.isClickable = true
                 searchButton?.setBackgroundColor(ContextCompat.getColor(applicationContext, R.color.purple_500))
+                if (bluetoothList?.isEmpty() == true){ bluetoothList?.add("No bluetooth devices found! Search again?")}
             } else if (ACTION_FOUND == action) {
                 var device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 var name: String? = device?.name
                 var address: String? = device?.address
                 var rssi: String? = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toString()
                 Log.i("Device Found", "Name: $name Address: $address RSSI: $rssi")
+                var deviceId: String? = name ?: address
+                bluetoothList?.add("$deviceId $rssi")
             }
+            arrayAdapter?.notifyDataSetChanged()
         }
 
     }
@@ -71,6 +76,10 @@ class MainActivity : AppCompatActivity() {
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
 
         registerReceiver(broadcastReceiver, intentFilter)
+
+        bluetoothList = ArrayList()
+        arrayAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_list_item_1, bluetoothList!!)
+        listView?.adapter = arrayAdapter
     }
 
     fun onSearchClicked(view: View) {
@@ -83,6 +92,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun search() {
         Log.i("Bluetooth", "Searching...")
+        bluetoothList?.clear()
+        arrayAdapter?.notifyDataSetChanged()
         statusTextView?.text = getString(R.string.searching)
         searchButton?.isEnabled = false
         searchButton?.isClickable = false
